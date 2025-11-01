@@ -1,0 +1,95 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # Auth Service
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - StripPrefix=2
+
+        # PFM Core Service
+        - id: pfm-core-service
+          uri: lb://pfm-core-service
+          predicates:
+            - Path=/api/v1/pfm/**
+          filters:
+            - StripPrefix=2
+            - name: JwtAuthenticationFilter
+
+        # Investment Service
+        - id: investment-service
+          uri: lb://investment-service
+          predicates:
+            - Path=/api/v1/invest/**
+          filters:
+            - StripPrefix=2
+            - name: JwtAuthenticationFilter
+
+        # Payment Service
+        - id: payment-service
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/v1/payment/**
+          filters:
+            - StripPrefix=2
+            - name: JwtAuthenticationFilter
+
+        # AI Coach Service
+        - id: ai-coach-service
+          uri: lb://ai-coach-service
+          predicates:
+            - Path=/api/v1/coach/**
+          filters:
+            - StripPrefix=2
+            - name: JwtAuthenticationFilter
+
+        # Content & Community Service
+        - id: content-community-service
+          uri: lb://content-community-service
+          predicates:
+            - Path=/api/v1/community/**
+          filters:
+            - StripPrefix=2
+            - name: JwtAuthenticationFilter
+
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+
+jwt:
+  secret: mybank360-super-secret-key-for-jwt-token-generation-minimum-256-bits
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,gateway
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty: DEBUG

@@ -1,0 +1,13 @@
+dependencies {
+    // Common library
+    implementation project(':common-lib')
+
+    // Spring Cloud
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+    // MongoDB for flexible schema
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+
+    // Cache
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+}
