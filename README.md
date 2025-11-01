@@ -1,14 +1,20 @@
 # MyBank 360 - Modern Fintech Platform
 
-A cloud-native, microservices-based fintech platform built with **Spring Boot 3**, **Spring Cloud**, **Kafka**, and **MongoDB**. This platform implements **MSA (Microservices Architecture)** and **EDA (Event-Driven Architecture)** patterns for high scalability and performance.
+A cloud-native, microservices-based fintech platform built with **Spring Boot 3**, **Spring Cloud**, **Kafka**, **MongoDB**, and **Next.js**. This platform implements **MSA (Microservices Architecture)** and **EDA (Event-Driven Architecture)** patterns for high scalability and performance.
 
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                       API Gateway (8080)                     │
-│              JWT Authentication & Routing                     │
-└────────────┬────────────────────────────────────────────────┘
+┌──────────────┐
+│   Browser    │
+│  (Frontend)  │
+└──────┬───────┘
+       │ http://localhost:3000
+       │
+┌──────▼───────────────────────────────────────────────────────┐
+│                       API Gateway (8080)                      │
+│              JWT Authentication & Routing                      │
+└────────────┬─────────────────────────────────────────────────┘
              │
     ┌────────┴────────┬──────────┬──────────┬──────────┐
     │                 │          │          │          │
@@ -54,6 +60,7 @@ A cloud-native, microservices-based fintech platform built with **Spring Boot 3*
 | Category | Technology | Purpose |
 |----------|-----------|---------|
 | **Architecture** | MSA, EDA | Service independence, async communication |
+| **Frontend** | Next.js 14, React, TypeScript | Modern web application |
 | **Backend** | Spring Boot 3.2, Spring Cloud 2023 | Microservices framework |
 | **Service Discovery** | Eureka | Service registry |
 | **API Gateway** | Spring Cloud Gateway | Request routing, JWT validation |
@@ -62,28 +69,29 @@ A cloud-native, microservices-based fintech platform built with **Spring Boot 3*
 | **Messaging** | Apache Kafka | Event streaming, EDA implementation |
 | **Monitoring** | Prometheus, Grafana | Metrics collection, visualization |
 | **Container** | Docker, Docker Compose | Local development |
-| **Orchestration** | Kubernetes | Production deployment |
+| **Orchestration** | Kubernetes (Kind) | Production deployment |
 
 ## Project Structure
 
 ```
-my-bank-360/
-├── infrastructure/
-│   ├── api-gateway/           # API Gateway (Port 8080)
-│   ├── config-server/         # Config Server (Port 8888)
-│   └── service-discovery/     # Eureka Server (Port 8761)
-├── services/
-│   ├── auth-service/          # Authentication (Port 8081)
-│   ├── pfm-core-service/      # Personal Financial Management (Port 8082)
-│   ├── payment-service/       # Payment & Transfers (Port 8083)
-│   ├── investment-service/    # Investing & Round-up (Port 8084)
-│   ├── ai-coach-service/      # AI Financial Coaching
-│   └── content-community-service/  # Education & Community
-├── common/
-│   └── common-lib/            # Shared utilities, DTOs, configs
-├── docker/
-│   └── prometheus/
-└── docker-compose.yml
+my-bank/
+├── app/                       # Frontend (Next.js)
+│   ├── app/                  # Next.js App Router
+│   ├── components/           # React components
+│   ├── lib/                  # API client, utilities
+│   ├── stores/               # State management
+│   └── types/                # TypeScript types
+├── api-gateway/              # API Gateway (Port 8080)
+├── config-server/            # Config Server (Port 8888)
+├── service-discovery/        # Eureka Server (Port 8761)
+├── auth-service/             # Authentication (Port 8081)
+├── pfm-core-service/         # Personal Financial Management (Port 8082)
+├── payment-service/          # Payment & Transfers (Port 8083)
+├── investment-service/       # Investing & Round-up (Port 8084)
+├── common-lib/               # Shared utilities, DTOs, configs
+├── k8s/                      # Kubernetes manifests
+├── docker/                   # Docker configs
+└── docker-compose.yml        # Local development
 ```
 
 ## Getting Started
@@ -114,7 +122,7 @@ docker-compose logs -f kafka
 - Kafka: `localhost:9092`
 - Kafka UI: `http://localhost:8090`
 - Prometheus: `http://localhost:9090`
-- Grafana: `http://localhost:3000` (admin/admin)
+- Grafana: `http://localhost:3001` (admin/admin)
 
 ### 2. Build the Project
 
@@ -242,12 +250,156 @@ curl http://localhost:8080/api/v1/invest/summary \
 Visit `http://localhost:9090`
 
 ### Grafana Dashboards
-1. Open `http://localhost:3000` (admin/admin)
+1. Open `http://localhost:3001` (admin/admin)
 2. Add Prometheus data source: `http://prometheus:9090`
 3. Import dashboard ID: 4701 (JVM Micrometer)
 
 ### Kafka UI
 Monitor topics at `http://localhost:8090`
+
+## Frontend Application
+
+### Features
+- 🔐 **Authentication**: Login/Register with JWT
+- 📊 **Dashboard**: Asset summary with charts
+- 💰 **Spending Analysis**: Category breakdown and anomaly detection
+- 📈 **Investment**: Round-up investing and portfolio tracking
+- 💳 **Payment**: Account transfers and transaction history
+
+### Quick Start
+
+#### Option 1: Docker Compose (Recommended)
+
+```bash
+# Start all services including frontend
+docker-compose up -d
+
+# Access frontend
+open http://localhost:3000
+```
+
+#### Option 2: Local Development
+
+```bash
+# Fix npm cache permissions if needed
+sudo chown -R $(whoami) ~/.npm
+
+# Install dependencies
+cd app
+npm install
+
+# Run development server
+npm run dev
+
+# Access frontend
+open http://localhost:3000
+```
+
+#### Option 3: Kubernetes (Kind)
+
+```bash
+# Build all images and deploy
+./kind-deploy-all.sh
+
+# Access frontend via NodePort
+open http://localhost:30000
+```
+
+### Frontend Tech Stack
+
+- **Next.js 14**: React framework with App Router
+- **TypeScript**: Type-safe development
+- **Tailwind CSS**: Utility-first styling
+- **React Query**: Server state management
+- **Zustand**: Client state management
+- **Recharts**: Data visualization
+
+See [FRONTEND_DEPLOYMENT.md](./FRONTEND_DEPLOYMENT.md) for detailed deployment instructions.
+
+## Deployment
+
+### Docker Compose
+
+```bash
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+```
+
+### Kubernetes (Kind)
+
+```bash
+# Build and deploy everything
+./kind-deploy-all.sh
+
+# Access services
+Frontend:         http://localhost:30000
+API Gateway:      http://localhost:8080
+Eureka Dashboard: http://localhost:8761
+Kafka UI:         http://localhost:8090
+
+# View pods
+kubectl get pods -n mybank
+
+# View logs
+kubectl logs -f deployment/frontend -n mybank
+
+# Clean up
+./undeploy-kind.sh
+```
+
+## Testing the Platform
+
+### 1. Create an Account
+
+Open http://localhost:3000 (or :30000 for Kind) and register:
+- Email: test@mybank.com
+- Password: MyBank123!
+- Name: 홍길동
+- Phone: 010-1234-5678
+
+### 2. Explore Features
+
+After login, you'll see:
+- **Dashboard**: View your assets and category breakdown
+- **지출 분석**: Analyze spending patterns
+- **투자**: Track investment portfolio and round-up investing
+- **송금**: Transfer money between accounts
+
+### 3. Test Round-Up Investing
+
+1. Go to 송금 (Payment) page
+2. Make a transfer (e.g., 15,300 KRW)
+3. Go to 투자 (Investment) page
+4. See automatic round-up investment (200 KRW to reach 15,500)
+
+## API Documentation
+
+### Authentication Endpoints
+
+- `POST /api/v1/auth/register` - User registration
+- `POST /api/v1/auth/login` - User login
+- `POST /api/v1/auth/logout` - User logout
+- `POST /api/v1/auth/refresh` - Token refresh
+
+### PFM Endpoints
+
+- `GET /api/v1/pfm/assets` - Get asset summary
+- `GET /api/v1/pfm/spending/analysis?daysBack=30` - Get spending analysis
+
+### Payment Endpoints
+
+- `POST /api/v1/payment/transfer` - Execute transfer
+- `GET /api/v1/payment/{paymentId}` - Get payment details
+
+### Investment Endpoints
+
+- `GET /api/v1/invest/summary` - Get investment summary
 
 ## License
 

@@ -58,6 +58,12 @@ docker build -t mybank/investment-service:latest \
   -f investment-service/Dockerfile \
   investment-service/
 
+# Frontend
+echo "Building frontend..."
+docker build -t mybank/frontend:latest \
+  -f app/Dockerfile \
+  app/
+
 echo ""
 echo -e "${GREEN}✅ All images built successfully!${NC}"
 echo ""

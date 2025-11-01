@@ -139,7 +139,7 @@ services:
     image: grafana/grafana:latest
     container_name: mybank-grafana
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
@@ -149,6 +149,23 @@ services:
       - mybank-network
     depends_on:
       - prometheus
+
+  # Frontend - Next.js application
+  frontend:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: mybank-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+      NODE_ENV: production
+    networks:
+      - mybank-network
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
 
 networks:
   mybank-network:

@@ -46,6 +46,7 @@ kind load docker-image mybank/auth-service:latest --name mybank-cluster
 kind load docker-image mybank/pfm-core-service:latest --name mybank-cluster
 kind load docker-image mybank/payment-service:latest --name mybank-cluster
 kind load docker-image mybank/investment-service:latest --name mybank-cluster
+kind load docker-image mybank/frontend:latest --name mybank-cluster
 echo -e "${GREEN}✅ Images loaded to Kind${NC}"
 
 echo ""
@@ -90,12 +91,17 @@ kubectl apply -f k8s/services/payment-service.yaml
 kubectl apply -f k8s/services/investment-service.yaml
 
 echo ""
+echo "Deploying frontend..."
+kubectl apply -f k8s/frontend-deployment.yaml
+
+echo ""
 echo -e "${GREEN}✅ Deployment completed!${NC}"
 echo ""
 echo "📊 Checking deployment status..."
 kubectl get pods -n mybank
 echo ""
 echo "🌐 Access URLs:"
+echo "  - Frontend:         http://localhost:30000"
 echo "  - API Gateway:      http://localhost:8080"
 echo "  - Eureka Dashboard: http://localhost:8761"
 echo "  - Kafka UI:         http://localhost:8090"
