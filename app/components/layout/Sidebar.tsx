@@ -8,6 +8,7 @@ import {
   TrendingUp,
   CreditCard,
   PiggyBank,
+  Wallet,
   LogOut,
   Menu,
   X
@@ -18,10 +19,11 @@ import { apiClient } from '@/lib/api/client';
 import { authApi } from '@/lib/api/endpoints';
 
 const navigation = [
-  { name: '대시보드', href: '/dashboard', icon: LayoutDashboard },
-  { name: '지출 분석', href: '/dashboard/spending', icon: TrendingUp },
-  { name: '투자', href: '/dashboard/investment', icon: PiggyBank },
-  { name: '송금', href: '/dashboard/payment', icon: CreditCard },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Accounts', href: '/dashboard/accounts', icon: Wallet },
+  { name: 'Payments', href: '/dashboard/payment', icon: CreditCard },
+  { name: 'Investments', href: '/dashboard/investment', icon: PiggyBank },
+  { name: 'Analytics', href: '/dashboard/spending', icon: TrendingUp },
 ];
 
 export function Sidebar() {

@@ -4,29 +4,37 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAssets } from '@/lib/hooks/useAssets';
+import { useTransfer, usePaymentHistory } from '@/lib/hooks/usePayments';
 import { Card } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { paymentApi } from '@/lib/api/endpoints';
+import { Input } from '@/components/ui/Input';
+import { Loading } from '@/components/ui/Loading';
 import { formatCurrency, formatDateTime } from '@/lib/utils/format';
-import { CheckCircle, XCircle, Send } from 'lucide-react';
-import { PaymentResponse } from '@/types/api';
+import { PaymentStatus } from '@/types/api';
 
 const transferSchema = z.object({
-  fromAccountId: z.string().min(1, '출금 계좌를 입력하세요'),
-  toAccountId: z.string().min(1, '입금 계좌를 입력하세요'),
-  recipientName: z.string().min(1, '받는 분 성함을 입력하세요'),
-  amount: z.number().min(1, '송금 금액을 입력하세요').positive('양수를 입력하세요'),
+  fromAccountId: z.string().min(1, 'Please select an account'),
+  toAccountId: z.string().min(1, 'Recipient account is required'),
+  recipientName: z.string().min(2, 'Recipient name is required'),
+  amount: z.number().min(1, 'Amount must be greater than 0'),
   description: z.string().optional(),
 });
 
 type TransferFormData = z.infer<typeof transferSchema>;
 
+const STATUS_COLORS: Record<PaymentStatus, string> = {
+  COMPLETED: 'bg-green-100 text-green-800',
+  PENDING: 'bg-yellow-100 text-yellow-800',
+  FAILED: 'bg-red-100 text-red-800',
+  CANCELLED: 'bg-gray-100 text-gray-800',
+};
+
 export default function PaymentPage() {
-  const queryClient = useQueryClient();
-  const [result, setResult] = useState<PaymentResponse | null>(null);
-  const [error, setError] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
+  const { data: assets, isLoading: assetsLoading } = useAssets();
+  const { data: paymentHistory, isLoading: historyLoading } = usePaymentHistory(0, 10);
+  const transferMutation = useTransfer();
 
   const {
     register,
@@ -37,77 +45,89 @@ export default function PaymentPage() {
     resolver: zodResolver(transferSchema),
   });
 
-  const transferMutation = useMutation({
-    mutationFn: paymentApi.transfer,
-    onSuccess: (data) => {
-      if (data.success) {
-        setResult(data.data);
-        setError('');
+  const onSubmit = async (data: TransferFormData) => {
+    transferMutation.mutate(data, {
+      onSuccess: () => {
+        setShowSuccess(true);
         reset();
-        // Invalidate assets query to refresh balance
-        queryClient.invalidateQueries({ queryKey: ['assets'] });
-      } else {
-        setError(data.message || '송금에 실패했습니다');
-        setResult(null);
-      }
-    },
-    onError: (err: any) => {
-      console.error('Transfer error:', err);
-      setError(err.response?.data?.message || '송금 중 오류가 발생했습니다');
-      setResult(null);
-    },
-  });
-
-  const onSubmit = (data: TransferFormData) => {
-    setResult(null);
-    setError('');
-    transferMutation.mutate(data);
+        setTimeout(() => setShowSuccess(false), 3000);
+      },
+    });
   };
 
+  if (assetsLoading || historyLoading) {
+    return <Loading message="Loading payment page..." />;
+  }
+
   return (
-    <div className="space-y-8">
-      {/* Header */}
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">송금</h1>
-        <p className="text-gray-600 mt-2">계좌 이체 서비스</p>
+        <h1 className="text-3xl font-bold text-gray-900">Payments</h1>
+        <p className="text-gray-600 mt-2">Transfer money between accounts</p>
       </div>
 
+      {showSuccess && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+          Transfer completed successfully!
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Transfer Form */}
-        <Card title="송금하기">
+        <Card title="New Transfer" description="Send money to another account">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <Input
-              label="출금 계좌 ID"
-              placeholder="account-123"
-              error={errors.fromAccountId?.message}
-              {...register('fromAccountId')}
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                From Account
+              </label>
+              <select
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                {...register('fromAccountId')}
+              >
+                <option value="">Select account</option>
+                {assets?.assets.map((asset) => (
+                  <option key={asset.id} value={asset.id}>
+                    {asset.accountName} - {formatCurrency(asset.balance)}
+                  </option>
+                ))}
+              </select>
+              {errors.fromAccountId && (
+                <p className="mt-1 text-sm text-red-600">{errors.fromAccountId.message}</p>
+              )}
+            </div>
 
             <Input
-              label="입금 계좌 ID"
-              placeholder="account-456"
+              label="Recipient Account Number"
+              placeholder="Enter account number"
               error={errors.toAccountId?.message}
               {...register('toAccountId')}
             />
 
             <Input
-              label="받는 분"
-              placeholder="홍길동"
+              label="Recipient Name"
+              placeholder="Enter recipient name"
               error={errors.recipientName?.message}
               {...register('recipientName')}
             />
 
-            <Input
-              label="송금 금액 (원)"
-              type="number"
-              placeholder="100000"
-              error={errors.amount?.message}
-              {...register('amount', { valueAsNumber: true })}
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Amount
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                placeholder="0.00"
+                {...register('amount', { valueAsNumber: true })}
+              />
+              {errors.amount && (
+                <p className="mt-1 text-sm text-red-600">{errors.amount.message}</p>
+              )}
+            </div>
 
             <Input
-              label="메모 (선택)"
-              placeholder="월세"
+              label="Description (Optional)"
+              placeholder="What's this for?"
               {...register('description')}
             />
 
@@ -116,128 +136,45 @@ export default function PaymentPage() {
               className="w-full"
               isLoading={transferMutation.isPending}
             >
-              <Send className="w-4 h-4 mr-2" />
-              송금하기
+              Transfer Money
             </Button>
           </form>
         </Card>
 
-        {/* Result Display */}
-        <div className="space-y-6">
-          {/* Success Result */}
-          {result && result.status === 'COMPLETED' && (
-            <Card className="bg-green-50 border-2 border-green-200">
-              <div className="flex items-start">
-                <CheckCircle className="w-12 h-12 text-green-600 mr-4 flex-shrink-0" />
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-green-900 mb-4">
-                    송금 완료
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between py-2 border-b border-green-200">
-                      <span className="text-green-700">받는 분</span>
-                      <span className="font-semibold text-green-900">
-                        {result.recipientName}
-                      </span>
+        <Card title="Recent Payments" description="Your latest transactions">
+          {paymentHistory && paymentHistory.payments.length > 0 ? (
+            <div className="space-y-3">
+              {paymentHistory.payments.map((payment) => (
+                <div
+                  key={payment.paymentId}
+                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        {payment.recipientName}
+                      </p>
+                      <p className="text-sm text-gray-600">{payment.message}</p>
                     </div>
-                    <div className="flex justify-between py-2 border-b border-green-200">
-                      <span className="text-green-700">송금 금액</span>
-                      <span className="font-semibold text-green-900">
-                        {formatCurrency(result.amount)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-2 border-b border-green-200">
-                      <span className="text-green-700">거래 번호</span>
-                      <span className="font-mono text-sm text-green-800">
-                        {result.paymentId}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-2">
-                      <span className="text-green-700">완료 시각</span>
-                      <span className="text-green-800">
-                        {result.completedAt && formatDateTime(result.completedAt)}
-                      </span>
-                    </div>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[payment.status]}`}>
+                      {payment.status}
+                    </span>
                   </div>
-                  <p className="mt-4 text-sm text-green-700 bg-green-100 px-3 py-2 rounded">
-                    {result.message}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-lg font-semibold text-gray-900">
+                      {formatCurrency(payment.amount)}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {formatDateTime(new Date(payment.createdAt))}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500 py-12">No payment history</p>
           )}
-
-          {/* Pending Result */}
-          {result && result.status === 'PENDING' && (
-            <Card className="bg-yellow-50 border-2 border-yellow-200">
-              <div className="flex items-start">
-                <div className="w-12 h-12 mr-4 flex-shrink-0 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600"></div>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-yellow-900 mb-2">
-                    송금 처리 중
-                  </h3>
-                  <p className="text-yellow-700">{result.message}</p>
-                  <p className="text-sm text-yellow-600 mt-2">거래 번호: {result.paymentId}</p>
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Error Result */}
-          {(error || (result && result.status === 'FAILED')) && (
-            <Card className="bg-red-50 border-2 border-red-200">
-              <div className="flex items-start">
-                <XCircle className="w-12 h-12 text-red-600 mr-4 flex-shrink-0" />
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-red-900 mb-2">
-                    송금 실패
-                  </h3>
-                  <p className="text-red-700">{error || result?.message}</p>
-                  {result && (
-                    <p className="text-sm text-red-600 mt-2">거래 번호: {result.paymentId}</p>
-                  )}
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Info Card */}
-          {!result && !error && (
-            <Card title="송금 안내">
-              <div className="space-y-3 text-sm text-gray-600">
-                <div className="flex items-start">
-                  <span className="inline-block w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
-                    1
-                  </span>
-                  <p>계좌 ID는 대시보드의 자산 목록에서 확인할 수 있습니다.</p>
-                </div>
-                <div className="flex items-start">
-                  <span className="inline-block w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
-                    2
-                  </span>
-                  <p>송금 금액은 원 단위로 입력해주세요.</p>
-                </div>
-                <div className="flex items-start">
-                  <span className="inline-block w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
-                    3
-                  </span>
-                  <p>
-                    라운드업 투자가 활성화되어 있다면, 송금 금액이 자동으로 라운드업되어
-                    투자될 수 있습니다.
-                  </p>
-                </div>
-                <div className="flex items-start">
-                  <span className="inline-block w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
-                    4
-                  </span>
-                  <p>송금은 즉시 처리되며, 거래 내역은 지출 분석에 반영됩니다.</p>
-                </div>
-              </div>
-            </Card>
-          )}
-        </div>
+        </Card>
       </div>
     </div>
   );

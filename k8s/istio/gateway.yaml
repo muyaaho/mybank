@@ -1,0 +1,48 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: mybank-gateway
+  namespace: mybank
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    # Frontend (app.mybank.com)
+    - port:
+        number: 443
+        name: https-app
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: mybank-tls-app
+      hosts:
+        - app.mybank.com
+    # API Gateway (api.mybank.com)
+    - port:
+        number: 443
+        name: https-api
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: mybank-tls-api
+      hosts:
+        - api.mybank.com
+    # Eureka Dashboard (eureka.mybank.com)
+    - port:
+        number: 443
+        name: https-eureka
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: mybank-tls-eureka
+      hosts:
+        - eureka.mybank.com
+    # HTTP redirect to HTTPS
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "*"
+      tls:
+        httpsRedirect: true

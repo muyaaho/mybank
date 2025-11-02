@@ -1,171 +1,218 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useInvestmentSummary, useRoundUpToggle } from '@/lib/hooks/useInvestments';
+import { useAssets } from '@/lib/hooks/useAssets';
 import { Card } from '@/components/ui/Card';
-import { investmentApi } from '@/lib/api/endpoints';
+import { Button } from '@/components/ui/Button';
+import { Loading } from '@/components/ui/Loading';
 import { formatCurrency, formatDateTime } from '@/lib/utils/format';
-import { TrendingUp, PiggyBank, Zap } from 'lucide-react';
 import { InvestmentType } from '@/types/api';
 
-const INVESTMENT_TYPE_ICONS = {
-  ROUNDUP: Zap,
-  MANUAL: TrendingUp,
-  AUTO: PiggyBank,
+const INVESTMENT_TYPE_LABELS: Record<InvestmentType, string> = {
+  ROUNDUP: 'Round-up Savings',
+  MANUAL: 'Manual Investment',
+  AUTO: 'Auto Investment',
 };
 
-const INVESTMENT_TYPE_COLORS = {
-  ROUNDUP: 'bg-purple-100 text-purple-700',
-  MANUAL: 'bg-blue-100 text-blue-700',
-  AUTO: 'bg-green-100 text-green-700',
+const INVESTMENT_TYPE_COLORS: Record<InvestmentType, string> = {
+  ROUNDUP: 'bg-blue-100 text-blue-800',
+  MANUAL: 'bg-green-100 text-green-800',
+  AUTO: 'bg-purple-100 text-purple-800',
 };
 
 export default function InvestmentPage() {
-  const { data: investment, isLoading, error } = useQuery({
-    queryKey: ['investment'],
-    queryFn: async () => {
-      const response = await investmentApi.getSummary();
-      return response.data;
-    },
-  });
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('');
+  const { data: investments, isLoading: investmentsLoading } = useInvestmentSummary();
+  const { data: assets, isLoading: assetsLoading } = useAssets();
+  const { enableRoundUp, disableRoundUp, isLoading: toggleLoading } = useRoundUpToggle();
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">로딩 중...</div>
-      </div>
-    );
-  }
+  const handleToggleRoundUp = (enabled: boolean) => {
+    if (!selectedAccountId) {
+      alert('Please select an account first');
+      return;
+    }
 
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-        투자 정보를 불러오는 중 오류가 발생했습니다.
-      </div>
-    );
+    if (enabled) {
+      enableRoundUp(selectedAccountId);
+    } else {
+      disableRoundUp(selectedAccountId);
+    }
+  };
+
+  if (investmentsLoading || assetsLoading) {
+    return <Loading message="Loading investments..." />;
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">투자</h1>
-        <p className="text-gray-600 mt-2">자동 투자 및 라운드업 투자 현황</p>
+        <h1 className="text-3xl font-bold text-gray-900">Investments</h1>
+        <p className="text-gray-600 mt-2">Grow your wealth with smart savings</p>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-gradient-to-br from-green-500 to-green-700 text-white">
+        <Card>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-100 text-sm">총 투자 금액</p>
-              <h2 className="text-3xl font-bold mt-2">
-                {formatCurrency(investment?.totalInvested || 0)}
-              </h2>
+              <p className="text-sm font-medium text-gray-600">Total Invested</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">
+                {formatCurrency(investments?.totalInvested || 0)}
+              </p>
             </div>
-            <TrendingUp className="w-12 h-12 opacity-50" />
+            <div className="bg-green-100 p-3 rounded-full">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500 to-purple-700 text-white">
+        <Card>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100 text-sm">라운드업 투자</p>
-              <h2 className="text-3xl font-bold mt-2">
-                {formatCurrency(investment?.totalRoundedUp || 0)}
-              </h2>
+              <p className="text-sm font-medium text-gray-600">Round-up Savings</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">
+                {formatCurrency(investments?.totalRoundedUp || 0)}
+              </p>
             </div>
-            <Zap className="w-12 h-12 opacity-50" />
+            <div className="bg-blue-100 p-3 rounded-full">
+              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 8h6m-5 0a3 3 0 110 6H9l3 3m-3-6h6m6 1a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
           </div>
+          <p className="text-xs text-gray-500 mt-2">
+            {investments?.totalRoundUpTransactions || 0} transactions
+          </p>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-500 to-blue-700 text-white">
+        <Card>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 text-sm">라운드업 횟수</p>
-              <h2 className="text-3xl font-bold mt-2">
-                {investment?.totalRoundUpTransactions || 0}건
-              </h2>
+              <p className="text-sm font-medium text-gray-600">Active Investments</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">
+                {investments?.recentInvestments.length || 0}
+              </p>
             </div>
-            <PiggyBank className="w-12 h-12 opacity-50" />
+            <div className="bg-purple-100 p-3 rounded-full">
+              <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
           </div>
         </Card>
       </div>
 
-      {/* Round-up Info */}
-      <Card title="라운드업 투자란?" description="결제 금액을 반올림하여 자동으로 투자하는 서비스입니다">
-        <div className="bg-purple-50 p-4 rounded-lg">
-          <p className="text-sm text-gray-700">
-            예를 들어, 15,300원을 결제하면 200원이 자동으로 투자됩니다 (15,500원으로 라운드업).
-            작은 금액도 모이면 큰 투자가 됩니다!
+      {/* Round-up Settings */}
+      <Card title="Round-up Savings" description="Automatically invest your spare change">
+        <div className="space-y-4">
+          <p className="text-gray-700">
+            Every time you make a purchase, we'll round up to the nearest dollar and invest the difference.
+            For example, a $4.30 purchase becomes $5.00, and $0.70 goes into your investment account.
           </p>
-          {investment && investment.totalRoundUpTransactions > 0 && (
-            <div className="mt-4 grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs text-gray-600">평균 라운드업 금액</p>
-                <p className="text-lg font-semibold text-purple-700">
-                  {formatCurrency((investment.totalRoundedUp / investment.totalRoundUpTransactions) || 0)}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-600">총 라운드업 비율</p>
-                <p className="text-lg font-semibold text-purple-700">
-                  {((investment.totalRoundedUp / investment.totalInvested) * 100).toFixed(1)}%
-                </p>
-              </div>
-            </div>
-          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select Account for Round-up
+            </label>
+            <select
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              value={selectedAccountId}
+              onChange={(e) => setSelectedAccountId(e.target.value)}
+            >
+              <option value="">Choose an account</option>
+              {assets?.assets.map((asset) => (
+                <option key={asset.id} value={asset.id}>
+                  {asset.accountName} - {formatCurrency(asset.balance)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex gap-4">
+            <Button
+              onClick={() => handleToggleRoundUp(true)}
+              isLoading={toggleLoading}
+              disabled={!selectedAccountId}
+            >
+              Enable Round-up
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => handleToggleRoundUp(false)}
+              isLoading={toggleLoading}
+              disabled={!selectedAccountId}
+            >
+              Disable Round-up
+            </Button>
+          </div>
         </div>
       </Card>
 
-      {/* Recent Investments */}
-      <Card title="최근 투자 내역">
-        <div className="space-y-3">
-          {investment?.recentInvestments.map((item) => {
-            const Icon = INVESTMENT_TYPE_ICONS[item.investmentType as keyof typeof INVESTMENT_TYPE_ICONS];
-            const colorClass = INVESTMENT_TYPE_COLORS[item.investmentType as keyof typeof INVESTMENT_TYPE_COLORS];
-
-            return (
+      {/* Investment History */}
+      <Card title="Recent Investments" description="Your latest investment activities">
+        {investments && investments.recentInvestments.length > 0 ? (
+          <div className="space-y-3">
+            {investments.recentInvestments.map((investment) => (
               <div
-                key={item.investmentId}
+                key={investment.investmentId}
                 className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <div className="flex items-center flex-1">
-                  <div className={`p-2 rounded-lg mr-4 ${colorClass}`}>
-                    <Icon className="w-5 h-5" />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="font-medium text-gray-900">{investment.productName}</p>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${INVESTMENT_TYPE_COLORS[investment.investmentType]}`}>
+                      {INVESTMENT_TYPE_LABELS[investment.investmentType]}
+                    </span>
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{item.productName}</p>
-                    <p className="text-sm text-gray-500">
-                      {formatDateTime(item.investedAt)} • {getInvestmentTypeName(item.investmentType)}
-                    </p>
-                  </div>
+                  <p className="text-sm text-gray-500">
+                    {formatDateTime(new Date(investment.investedAt))}
+                  </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-gray-900">
-                    {formatCurrency(item.amount)}
+                  <p className="text-lg font-semibold text-green-600">
+                    +{formatCurrency(investment.amount)}
                   </p>
-                  <span className={`inline-block px-2 py-1 text-xs rounded-full ${colorClass}`}>
-                    {getInvestmentTypeName(item.investmentType)}
-                  </span>
                 </div>
               </div>
-            );
-          })}
+            ))}
+          </div>
+        ) : (
+          <p className="text-center text-gray-500 py-12">No investments yet</p>
+        )}
+      </Card>
 
-          {(!investment?.recentInvestments || investment.recentInvestments.length === 0) && (
-            <p className="text-center text-gray-500 py-8">투자 내역이 없습니다.</p>
-          )}
+      {/* Investment Tips */}
+      <Card title="Investment Tips">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4 bg-blue-50 rounded-lg">
+            <h4 className="font-semibold text-blue-900 mb-2">Start Small</h4>
+            <p className="text-sm text-blue-700">
+              Round-up savings let you invest without thinking about it. Small amounts add up over time!
+            </p>
+          </div>
+          <div className="p-4 bg-green-50 rounded-lg">
+            <h4 className="font-semibold text-green-900 mb-2">Stay Consistent</h4>
+            <p className="text-sm text-green-700">
+              Regular investments, even small ones, can grow significantly with compound interest.
+            </p>
+          </div>
+          <div className="p-4 bg-purple-50 rounded-lg">
+            <h4 className="font-semibold text-purple-900 mb-2">Diversify</h4>
+            <p className="text-sm text-purple-700">
+              Don't put all your eggs in one basket. Spread your investments across different assets.
+            </p>
+          </div>
+          <div className="p-4 bg-yellow-50 rounded-lg">
+            <h4 className="font-semibold text-yellow-900 mb-2">Long-term Vision</h4>
+            <p className="text-sm text-yellow-700">
+              Investing is a marathon, not a sprint. Stay focused on your long-term goals.
+            </p>
+          </div>
         </div>
       </Card>
     </div>
   );
-}
-
-function getInvestmentTypeName(type: InvestmentType): string {
-  const names: Record<InvestmentType, string> = {
-    ROUNDUP: '라운드업',
-    MANUAL: '수동',
-    AUTO: '자동',
-  };
-  return names[type] || type;
 }

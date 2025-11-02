@@ -1,8 +1,8 @@
-# MyBank 360 - Modern Fintech Platform
+# MyBank 360 - 현대적인 핀테크 플랫폼
 
-A cloud-native, microservices-based fintech platform built with **Spring Boot 3**, **Spring Cloud**, **Kafka**, **MongoDB**, and **Next.js**. This platform implements **MSA (Microservices Architecture)** and **EDA (Event-Driven Architecture)** patterns for high scalability and performance.
+**Spring Boot 3**, **Spring Cloud**, **Kafka**, **MongoDB**, **Next.js**로 구축된 클라우드 네이티브 마이크로서비스 기반 핀테크 플랫폼입니다. 높은 확장성과 성능을 위해 **MSA (Microservices Architecture)** 및 **EDA (Event-Driven Architecture)** 패턴을 구현했습니다.
 
-## Architecture Overview
+## 아키텍처 개요
 
 ```
 ┌──────────────┐
@@ -33,89 +33,94 @@ A cloud-native, microservices-based fintech platform built with **Spring Boot 3*
                     └───────────┘
 ```
 
-## Core Features
+## 핵심 기능
 
-### 1. Personal Financial Management (PFM)
-- **Unified Asset View**: Aggregate accounts from banks, cards, securities, insurance
-- **AI-Powered Spending Analysis**: Automatic transaction categorization and anomaly detection
-- **Redis Caching**: Cache-Aside pattern for real-time balance queries
+### 1. 개인 자산 관리 (PFM)
+- **통합 자산 조회**: 은행, 카드, 증권, 보험 계좌 통합
+- **AI 기반 지출 분석**: 자동 거래 분류 및 이상 탐지
+- **Redis 캐싱**: Cache-Aside 패턴을 통한 실시간 잔액 조회
 
-### 2. Investment Services
-- **Micro-Investing**: Invest in stocks/ETFs starting from 1,000 KRW
-- **Round-Up Investing**: Automatically invest spare change from payments
-- **Event-Driven**: Consumes payment events via Kafka for automatic investing
+### 2. 투자 서비스
+- **소액 투자**: 1,000원부터 주식/ETF 투자 가능
+- **자동 거스름돈 투자**: 결제 시 남은 거스름돈 자동 투자
+- **이벤트 기반**: Kafka를 통한 결제 이벤트 수신으로 자동 투자 실행
 
-### 3. Payment & Transfers
-- **Ultra-Simple Transfers**: FIDO2 biometric authentication
-- **Subscription Management**: Auto-pay for telecom, OTT, utilities
-- **Event Publishing**: Publishes payment events to Kafka
+### 3. 송금 및 결제
+- **간편 송금**: FIDO2 생체 인증
+- **구독 관리**: 통신비, OTT, 공과금 자동 납부
+- **이벤트 발행**: Kafka로 결제 이벤트 발행
 
-### 4. Authentication & Security
-- **OAuth 2.0 & JWT**: Centralized authentication
-- **Account Lockout**: Protection against brute-force attacks
-- **Redis Session**: Distributed session management
+### 4. 인증 및 보안
+- **OAuth 2.0 & JWT**: 중앙화된 인증 처리
+- **계정 잠금**: 무차별 대입 공격 방지
+- **Redis 세션**: 분산 세션 관리
 
-## Tech Stack
+## 기술 스택
 
-| Category | Technology | Purpose |
-|----------|-----------|---------|
-| **Architecture** | MSA, EDA | Service independence, async communication |
-| **Frontend** | Next.js 14, React, TypeScript | Modern web application |
-| **Backend** | Spring Boot 3.2, Spring Cloud 2023 | Microservices framework |
-| **Service Discovery** | Eureka | Service registry |
-| **API Gateway** | Spring Cloud Gateway | Request routing, JWT validation |
-| **Main DB** | MongoDB, PostgreSQL | Flexible schema (PFM), ACID transactions (Auth) |
-| **Cache** | Redis Cluster | Session, rankings, real-time data |
-| **Messaging** | Apache Kafka | Event streaming, EDA implementation |
-| **Monitoring** | Prometheus, Grafana | Metrics collection, visualization |
-| **Container** | Docker, Docker Compose | Local development |
-| **Orchestration** | Kubernetes (Kind) | Production deployment |
+| 분류 | 기술 | 용도 |
+|------|------|------|
+| **아키텍처** | MSA, EDA | 서비스 독립성, 비동기 통신 |
+| **프론트엔드** | Next.js 14, React, TypeScript | 현대적인 웹 애플리케이션 |
+| **백엔드** | Spring Boot 3.2, Spring Cloud 2023 | 마이크로서비스 프레임워크 |
+| **서비스 디스커버리** | Eureka | 서비스 레지스트리 |
+| **API Gateway** | Spring Cloud Gateway | 요청 라우팅, JWT 검증 |
+| **주요 DB** | MongoDB, PostgreSQL | 유연한 스키마(PFM), ACID 트랜잭션(Auth) |
+| **캐시** | Redis Cluster | 세션, 랭킹, 실시간 데이터 |
+| **메시징** | Apache Kafka | 이벤트 스트리밍, EDA 구현 |
+| **모니터링** | Prometheus, Grafana | 메트릭 수집, 시각화 |
+| **컨테이너** | Docker, Docker Compose | 로컬 개발 환경 |
+| **오케스트레이션** | Kubernetes (Kind) | 프로덕션 배포 |
 
-## Project Structure
+## 프로젝트 구조
 
 ```
 my-bank/
-├── app/                       # Frontend (Next.js)
+├── app/                       # 프론트엔드 (Next.js)
 │   ├── app/                  # Next.js App Router
-│   ├── components/           # React components
-│   ├── lib/                  # API client, utilities
-│   ├── stores/               # State management
-│   └── types/                # TypeScript types
+│   ├── components/           # React 컴포넌트
+│   ├── lib/                  # API 클라이언트, 유틸리티
+│   ├── stores/               # 상태 관리
+│   └── types/                # TypeScript 타입
 ├── api-gateway/              # API Gateway (Port 8080)
 ├── config-server/            # Config Server (Port 8888)
 ├── service-discovery/        # Eureka Server (Port 8761)
-├── auth-service/             # Authentication (Port 8081)
-├── pfm-core-service/         # Personal Financial Management (Port 8082)
-├── payment-service/          # Payment & Transfers (Port 8083)
-├── investment-service/       # Investing & Round-up (Port 8084)
-├── common-lib/               # Shared utilities, DTOs, configs
-├── k8s/                      # Kubernetes manifests
-├── docker/                   # Docker configs
-└── docker-compose.yml        # Local development
+├── auth-service/             # 인증 서비스 (Port 8081)
+├── pfm-core-service/         # 자산 관리 서비스 (Port 8082)
+├── payment-service/          # 송금 서비스 (Port 8083)
+├── investment-service/       # 투자 서비스 (Port 8084)
+├── common-lib/               # 공통 라이브러리, DTOs, 설정
+├── k8s/                      # Kubernetes 매니페스트
+├── docker/                   # Docker 설정
+└── docker-compose.yml        # 로컬 개발 환경
 ```
 
-## Getting Started
+## 개발자 문서
 
-### Prerequisites
+상세한 개발 가이드, 아키텍처 패턴, 자주 사용하는 명령어는 **[CLAUDE.md](./CLAUDE.md)**를 참고하세요.
 
-- **Java 21** or higher
-- **Docker** and **Docker Compose**
+## 시작하기
+
+### 사전 요구사항
+
+- **Java 21** 이상
+- **Docker** 및 **Docker Compose**
 - **Gradle 8.x**
+- **Node.js 20+** (프론트엔드 개발용)
 
-### 1. Start Infrastructure Services
+### 1. 인프라 서비스 시작
 
 ```bash
-# Start all infrastructure services
+# 모든 인프라 서비스 시작
 docker-compose up -d
 
-# Check service health
+# 서비스 상태 확인
 docker-compose ps
 
-# View logs
+# 로그 확인
 docker-compose logs -f kafka
 ```
 
-**Services Started:**
+**시작된 서비스:**
 - PostgreSQL: `localhost:5432`
 - MongoDB: `localhost:27017`
 - Redis: `localhost:6379`
@@ -124,56 +129,56 @@ docker-compose logs -f kafka
 - Prometheus: `http://localhost:9090`
 - Grafana: `http://localhost:3001` (admin/admin)
 
-### 2. Build the Project
+### 2. 프로젝트 빌드
 
 ```bash
-# Build all modules
+# 모든 모듈 빌드
 ./gradlew clean build
 
-# Skip tests for faster build
+# 테스트 스킵하여 빠른 빌드
 ./gradlew clean build -x test
 ```
 
-### 3. Start Microservices
+### 3. 마이크로서비스 시작
 
-**Start services in order:**
+**서비스를 순서대로 시작:**
 
 ```bash
-# 1. Service Discovery (wait for startup)
-./gradlew :infrastructure:service-discovery:bootRun
+# 1. Service Discovery (시작 대기)
+./gradlew :service-discovery:bootRun
 
-# 2. Config Server (wait for registration)
-./gradlew :infrastructure:config-server:bootRun
+# 2. Config Server (Eureka 등록 대기)
+./gradlew :config-server:bootRun
 
-# 3. API Gateway (wait for registration)
-./gradlew :infrastructure:api-gateway:bootRun
+# 3. API Gateway (Eureka 등록 대기)
+./gradlew :api-gateway:bootRun
 
-# 4. Business Services (can start in parallel)
-./gradlew :services:auth-service:bootRun
-./gradlew :services:pfm-core-service:bootRun
-./gradlew :services:payment-service:bootRun
-./gradlew :services:investment-service:bootRun
+# 4. 비즈니스 서비스들 (병렬 시작 가능)
+./gradlew :auth-service:bootRun
+./gradlew :pfm-core-service:bootRun
+./gradlew :payment-service:bootRun
+./gradlew :investment-service:bootRun
 ```
 
-### 4. Verify Services
+### 4. 서비스 확인
 
 ```bash
-# Check Eureka Dashboard
+# Eureka 대시보드 확인
 open http://localhost:8761
 
-# Check API Gateway health
+# API Gateway 상태 확인
 curl http://localhost:8080/actuator/health
 
-# Check service health
+# 각 서비스 상태 확인
 curl http://localhost:8081/auth/health
 curl http://localhost:8082/pfm/health
 curl http://localhost:8083/payment/health
 curl http://localhost:8084/invest/health
 ```
 
-## API Examples
+## API 사용 예제
 
-### 1. User Registration
+### 1. 회원가입
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/auth/register \
@@ -181,12 +186,12 @@ curl -X POST http://localhost:8080/api/v1/auth/register \
   -d '{
     "email": "user@mybank.com",
     "password": "MyBank123!",
-    "name": "John Doe",
+    "name": "홍길동",
     "phoneNumber": "010-1234-5678"
   }'
 ```
 
-### 2. Login
+### 2. 로그인
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/auth/login \
@@ -197,14 +202,14 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
   }'
 ```
 
-### 3. Get Assets (with JWT)
+### 3. 자산 조회 (JWT 포함)
 
 ```bash
 curl http://localhost:8080/api/v1/pfm/assets \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### 4. Transfer Money
+### 4. 송금
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/payment/transfer \
@@ -213,194 +218,200 @@ curl -X POST http://localhost:8080/api/v1/payment/transfer \
   -d '{
     "fromAccountId": "account-123",
     "toAccountId": "account-456",
-    "recipientName": "Jane Doe",
+    "recipientName": "김철수",
     "amount": 50000,
-    "description": "Dinner payment"
+    "description": "저녁 식사비"
   }'
 ```
 
-### 5. Get Investment Summary
+### 5. 투자 요약 조회
 
 ```bash
 curl http://localhost:8080/api/v1/invest/summary \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-## Event Flow: Round-Up Investing
+## 이벤트 플로우: 거스름돈 자동 투자
 
 ```
-1. User makes payment of 3,450 KRW
+1. 사용자가 3,450원 결제
    ↓
-2. Payment Service completes transaction
+2. Payment Service에서 거래 완료 처리
    ↓
-3. Publishes "PaymentCompletedEvent" to Kafka topic "payment-completed"
+3. Kafka 토픽 "payment-completed"에 "PaymentCompletedEvent" 발행
    ↓
-4. Investment Service consumes event
+4. Investment Service에서 이벤트 수신
    ↓
-5. Calculate round-up: 4,000 - 3,450 = 550 KRW
+5. 거스름돈 계산: 4,000 - 3,450 = 550원
    ↓
-6. Automatically invest 550 KRW in round-up account
+6. 550원 자동 투자 처리
    ↓
-7. Update investment balance and statistics
+7. 투자 잔액 및 통계 업데이트
 ```
 
-## Monitoring
+## 모니터링
 
-### Prometheus Metrics
-Visit `http://localhost:9090`
+### Prometheus 메트릭
+`http://localhost:9090` 방문
 
-### Grafana Dashboards
-1. Open `http://localhost:3001` (admin/admin)
-2. Add Prometheus data source: `http://prometheus:9090`
-3. Import dashboard ID: 4701 (JVM Micrometer)
+### Grafana 대시보드
+1. `http://localhost:3001` 접속 (admin/admin)
+2. Prometheus 데이터 소스 추가: `http://prometheus:9090`
+3. 대시보드 ID 가져오기: 4701 (JVM Micrometer)
 
 ### Kafka UI
-Monitor topics at `http://localhost:8090`
+`http://localhost:8090`에서 토픽 모니터링
 
-## Frontend Application
+## 프론트엔드 애플리케이션
 
-### Features
-- 🔐 **Authentication**: Login/Register with JWT
-- 📊 **Dashboard**: Asset summary with charts
-- 💰 **Spending Analysis**: Category breakdown and anomaly detection
-- 📈 **Investment**: Round-up investing and portfolio tracking
-- 💳 **Payment**: Account transfers and transaction history
+### 기능
+- 🔐 **인증**: JWT 기반 로그인/회원가입
+- 📊 **대시보드**: 자산 요약 및 차트
+- 💰 **지출 분석**: 카테고리별 분류 및 이상 탐지
+- 📈 **투자**: 거스름돈 투자 및 포트폴리오 추적
+- 💳 **송금**: 계좌 이체 및 거래 내역
 
-### Quick Start
+### 빠른 시작
 
-#### Option 1: Docker Compose (Recommended)
+#### 옵션 1: Docker Compose (권장)
 
 ```bash
-# Start all services including frontend
+# 프론트엔드 포함 모든 서비스 시작
 docker-compose up -d
 
-# Access frontend
+# 프론트엔드 접속
 open http://localhost:3000
 ```
 
-#### Option 2: Local Development
+#### 옵션 2: 로컬 개발
 
 ```bash
-# Fix npm cache permissions if needed
+# 필요시 npm 캐시 권한 수정
 sudo chown -R $(whoami) ~/.npm
 
-# Install dependencies
+# 의존성 설치
 cd app
 npm install
 
-# Run development server
+# 개발 서버 실행
 npm run dev
 
-# Access frontend
+# 프론트엔드 접속
 open http://localhost:3000
 ```
 
-#### Option 3: Kubernetes (Kind)
+#### 옵션 3: Kubernetes (Kind)
 
 ```bash
-# Build all images and deploy
+# 모든 이미지 빌드 및 배포
 ./kind-deploy-all.sh
 
-# Access frontend via NodePort
+# NodePort를 통한 프론트엔드 접속
 open http://localhost:30000
 ```
 
-### Frontend Tech Stack
+### 프론트엔드 기술 스택
 
-- **Next.js 14**: React framework with App Router
-- **TypeScript**: Type-safe development
-- **Tailwind CSS**: Utility-first styling
-- **React Query**: Server state management
-- **Zustand**: Client state management
-- **Recharts**: Data visualization
+- **Next.js 14**: App Router를 사용하는 React 프레임워크
+- **TypeScript**: 타입 안전 개발
+- **Tailwind CSS**: 유틸리티 우선 스타일링
+- **React Query**: 서버 상태 관리
+- **Zustand**: 클라이언트 상태 관리
+- **Recharts**: 데이터 시각화
 
-See [FRONTEND_DEPLOYMENT.md](./FRONTEND_DEPLOYMENT.md) for detailed deployment instructions.
+상세한 배포 가이드는 [FRONTEND_DEPLOYMENT.md](./FRONTEND_DEPLOYMENT.md)를 참고하세요.
 
-## Deployment
+## 배포
 
 ### Docker Compose
 
 ```bash
-# Start all services
+# 모든 서비스 시작
 docker-compose up -d
 
-# View logs
+# 로그 확인
 docker-compose logs -f
 
-# Stop services
+# 서비스 중지
 docker-compose down
 ```
 
 ### Kubernetes (Kind)
 
 ```bash
-# Build and deploy everything
+# 전체 빌드 및 배포
 ./kind-deploy-all.sh
 
-# Access services
-Frontend:         http://localhost:30000
+# 서비스 접속
+프론트엔드:         http://localhost:30000
 API Gateway:      http://localhost:8080
-Eureka Dashboard: http://localhost:8761
+Eureka 대시보드:   http://localhost:8761
 Kafka UI:         http://localhost:8090
 
-# View pods
+# Pod 확인
 kubectl get pods -n mybank
 
-# View logs
+# 로그 확인
 kubectl logs -f deployment/frontend -n mybank
 
-# Clean up
+# 정리
 ./undeploy-kind.sh
 ```
 
-## Testing the Platform
+## 플랫폼 테스트
 
-### 1. Create an Account
+### 1. 계정 생성
 
-Open http://localhost:3000 (or :30000 for Kind) and register:
+http://localhost:3000 (Kind 사용 시 :30000) 접속하여 회원가입:
 - Email: test@mybank.com
 - Password: MyBank123!
 - Name: 홍길동
 - Phone: 010-1234-5678
 
-### 2. Explore Features
+### 2. 기능 탐색
 
-After login, you'll see:
-- **Dashboard**: View your assets and category breakdown
-- **지출 분석**: Analyze spending patterns
-- **투자**: Track investment portfolio and round-up investing
-- **송금**: Transfer money between accounts
+로그인 후 다음 기능 확인:
+- **Dashboard**: 자산 및 카테고리별 분류 확인
+- **지출 분석**: 지출 패턴 분석
+- **투자**: 투자 포트폴리오 및 거스름돈 투자 추적
+- **송금**: 계좌 간 송금
 
-### 3. Test Round-Up Investing
+### 3. 거스름돈 투자 테스트
 
-1. Go to 송금 (Payment) page
-2. Make a transfer (e.g., 15,300 KRW)
-3. Go to 투자 (Investment) page
-4. See automatic round-up investment (200 KRW to reach 15,500)
+1. 송금 페이지로 이동
+2. 송금 실행 (예: 15,300원)
+3. 투자 페이지로 이동
+4. 자동 거스름돈 투자 확인 (200원이 투자되어 15,500원으로 올림)
 
-## API Documentation
+## API 문서
 
-### Authentication Endpoints
+### 인증 엔드포인트
 
-- `POST /api/v1/auth/register` - User registration
-- `POST /api/v1/auth/login` - User login
-- `POST /api/v1/auth/logout` - User logout
-- `POST /api/v1/auth/refresh` - Token refresh
+- `POST /api/v1/auth/register` - 회원가입
+- `POST /api/v1/auth/login` - 로그인
+- `POST /api/v1/auth/logout` - 로그아웃
+- `POST /api/v1/auth/refresh` - 토큰 갱신
 
-### PFM Endpoints
+### PFM 엔드포인트
 
-- `GET /api/v1/pfm/assets` - Get asset summary
-- `GET /api/v1/pfm/spending/analysis?daysBack=30` - Get spending analysis
+- `GET /api/v1/pfm/assets` - 자산 요약 조회
+- `GET /api/v1/pfm/spending/analysis?daysBack=30` - 지출 분석 조회
 
-### Payment Endpoints
+### 송금 엔드포인트
 
-- `POST /api/v1/payment/transfer` - Execute transfer
-- `GET /api/v1/payment/{paymentId}` - Get payment details
+- `POST /api/v1/payment/transfer` - 송금 실행
+- `GET /api/v1/payment/{paymentId}` - 송금 상세 조회
 
-### Investment Endpoints
+### 투자 엔드포인트
 
-- `GET /api/v1/invest/summary` - Get investment summary
+- `GET /api/v1/invest/summary` - 투자 요약 조회
 
-## License
+## 추가 문서
+
+- **[CLAUDE.md](./CLAUDE.md)** - 아키텍처 패턴, 테스트 전략, 트러블슈팅을 포함한 완전한 개발자 가이드
+- **[QUICKSTART.md](./QUICKSTART.md)** - 전체 시스템 빠른 배포 가이드
+- **[app/README.md](./app/README.md)** - 프론트엔드 개발 가이드
+
+## 라이선스
 
 MIT License

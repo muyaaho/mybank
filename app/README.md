@@ -5,82 +5,122 @@ Modern Next.js frontend for the MyBank 360 personal finance management platform.
 ## Tech Stack
 
 - **Next.js 14** - React framework with App Router
+- **React 18** - UI library
 - **TypeScript** - Type-safe development
 - **Tailwind CSS** - Utility-first styling
-- **React Query** - Server state management
+- **TanStack React Query** - Server state management & caching
 - **Zustand** - Client state management
-- **Axios** - HTTP client
-- **Recharts** - Data visualization
-- **React Hook Form + Zod** - Form validation
+- **Axios** - HTTP client with interceptors
+- **Recharts** - Data visualization charts
+- **React Hook Form** - Form state management
+- **Zod** - Schema validation
+- **Lucide React** - Icon library
+- **date-fns** - Date formatting
 
 ## Features
 
 ### 🔐 Authentication
-- User registration with validation
-- Login with JWT tokens
+- Email/password registration with validation
+- JWT-based login
+- Kakao OAuth integration
 - Automatic token refresh
 - Secure session management
+- Protected routes
 
 ### 📊 Dashboard
-- Asset summary overview
-- Category breakdown with charts
-- Total balance display
-- Asset list with details
+- Total assets overview with charts
+- Asset distribution (Pie chart)
+- Category breakdown by asset type
+- Recent assets list
+- Real-time balance display
 
-### 💰 Spending Analysis
-- Category-based spending breakdown
-- Customizable time periods (7/30/90 days)
-- Interactive charts
-- Anomalous transaction detection
+### 💼 Accounts & Transactions
+- Transaction history with pagination
+- Transaction type filtering
+- Balance tracking per transaction
+- Visual transaction icons
+- Date and category information
 
-### 📈 Investment
+### 💳 Payments & Transfers
+- Account-to-account transfers
+- Recipient management
+- Transfer form with validation
+- Real-time payment status
+- Payment history with status tracking
+
+### 📈 Investments
 - Investment portfolio summary
-- Round-up investment tracking
-- Investment history
-- Automated investment insights
+- Round-up savings automation
+- Enable/disable round-up per account
+- Investment history tracking
+- Investment type categorization
+- Investment tips and insights
 
-### 💳 Payment & Transfer
-- Secure account transfers
-- Real-time transaction status
-- Transaction history
-- Integration with round-up investment
+### 💰 Spending Analytics
+- Category-based spending breakdown
+- Customizable time periods (7/30/90/365 days)
+- Interactive bar and pie charts
+- Detailed category table
+- Anomalous transaction detection
+- Daily spending average
+- Spending insights
 
 ## Project Structure
 
 ```
 app/
-├── app/                      # Next.js App Router
-│   ├── (auth)/              # Authentication pages
-│   │   ├── login/
-│   │   └── register/
-│   ├── (dashboard)/         # Protected dashboard pages
+├── __tests__/                  # Jest tests
+│   ├── components/ui/         # Component tests
+│   ├── lib/utils/            # Utility tests
+│   └── stores/               # Store tests
+├── app/                       # Next.js App Router
+│   ├── (auth)/               # Authentication routes
+│   │   ├── login/page.tsx
+│   │   └── register/page.tsx
+│   ├── (dashboard)/          # Protected dashboard routes
 │   │   ├── dashboard/
-│   │   │   ├── spending/
-│   │   │   ├── investment/
-│   │   │   └── payment/
-│   │   └── layout.tsx
+│   │   │   ├── page.tsx              # Main dashboard
+│   │   │   ├── accounts/page.tsx     # Transactions
+│   │   │   ├── payment/page.tsx      # Payments & Transfers
+│   │   │   ├── investment/page.tsx   # Investments
+│   │   │   └── spending/page.tsx     # Analytics
+│   │   └── layout.tsx        # Dashboard layout with sidebar
 │   ├── globals.css
 │   ├── layout.tsx
-│   ├── page.tsx
-│   └── providers.tsx
-├── components/              # Reusable components
-│   ├── ui/                 # UI components
+│   ├── page.tsx              # Root redirect
+│   └── providers.tsx         # React Query provider
+├── components/               # Reusable components
+│   ├── ui/                  # UI primitives
 │   │   ├── Button.tsx
 │   │   ├── Card.tsx
-│   │   └── Input.tsx
-│   └── layout/             # Layout components
-│       └── Sidebar.tsx
-├── lib/                    # Core libraries
-│   ├── api/               # API client & endpoints
-│   │   ├── client.ts
-│   │   └── endpoints.ts
-│   └── utils/             # Utility functions
-│       ├── cn.ts
-│       └── format.ts
-├── stores/                # Zustand stores
-│   └── authStore.ts
-├── types/                 # TypeScript types
-│   └── api.ts
+│   │   ├── Input.tsx
+│   │   └── Loading.tsx
+│   ├── layout/
+│   │   └── Sidebar.tsx      # Navigation sidebar
+│   └── ProtectedRoute.tsx   # Auth guard
+├── lib/                     # Core libraries
+│   ├── api/
+│   │   ├── client.ts        # Axios client with interceptors
+│   │   └── endpoints.ts     # API endpoint definitions
+│   ├── hooks/               # React Query hooks
+│   │   ├── useAssets.ts
+│   │   ├── useInvestments.ts
+│   │   ├── usePayments.ts
+│   │   ├── useSpending.ts
+│   │   └── useTransactions.ts
+│   └── utils/
+│       ├── cn.ts            # Class name utility
+│       └── format.ts        # Format utilities
+├── stores/                  # Zustand stores
+│   ├── authStore.ts
+│   ├── assetStore.ts
+│   ├── investmentStore.ts
+│   ├── paymentStore.ts
+│   └── transactionStore.ts
+├── types/                   # TypeScript types
+│   └── api.ts              # API response types
+├── jest.config.js
+├── jest.setup.js
 └── package.json
 ```
 
@@ -130,24 +170,31 @@ docker run -p 3000:3000 \
 
 ## API Integration
 
-The frontend integrates with the following backend services via API Gateway:
+The frontend integrates with the following backend services via API Gateway (`https://api.mybank.com`):
 
-- **Auth Service** (`/api/v1/auth/*`)
-  - POST `/register` - User registration
-  - POST `/login` - User login
-  - POST `/logout` - User logout
-  - POST `/refresh` - Token refresh
+### Auth Service (`/api/v1/auth/*`)
+- `POST /register` - User registration
+- `POST /login` - Email/password login
+- `POST /kakao/callback` - Kakao OAuth callback
+- `POST /logout` - User logout
+- `POST /refresh` - Refresh access token
+- `GET /me` - Get current user
 
-- **PFM Core Service** (`/api/v1/pfm/*`)
-  - GET `/assets` - Get asset summary
-  - GET `/spending/analysis` - Get spending analysis
+### PFM Core Service (`/api/v1/pfm/*`)
+- `GET /assets` - Get asset summary with category breakdown
+- `GET /transactions` - Get transaction history (paginated)
+- `GET /spending/analysis?daysBack={days}` - Get spending analysis
+- `POST /assets/sync` - Sync assets from external sources
 
-- **Payment Service** (`/api/v1/payment/*`)
-  - POST `/transfer` - Execute transfer
-  - GET `/{paymentId}` - Get payment details
+### Payment Service (`/api/v1/payment/*`)
+- `POST /transfer` - Execute money transfer
+- `GET /{paymentId}` - Get payment details
+- `GET /history` - Get payment history (paginated)
 
-- **Investment Service** (`/api/v1/invest/*`)
-  - GET `/summary` - Get investment summary
+### Investment Service (`/api/v1/invest/*`)
+- `GET /summary` - Get investment summary
+- `POST /roundup/enable/{accountId}` - Enable round-up for account
+- `POST /roundup/disable/{accountId}` - Disable round-up for account
 
 ## Key Features Implementation
 

@@ -127,6 +127,27 @@ export interface PaymentResponse {
   message: string;
 }
 
+// Transaction Types
+export enum TransactionType {
+  DEPOSIT = 'DEPOSIT',
+  WITHDRAWAL = 'WITHDRAWAL',
+  TRANSFER = 'TRANSFER',
+  PAYMENT = 'PAYMENT',
+}
+
+export interface Transaction {
+  transactionId: string;
+  accountId: string;
+  type: TransactionType;
+  amount: number;
+  balance: number;
+  merchantName?: string;
+  category: string;
+  description: string;
+  transactionDate: string;
+  createdAt: string;
+}
+
 // Investment Types
 export enum InvestmentType {
   ROUNDUP = 'ROUNDUP',
