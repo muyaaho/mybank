@@ -2,7 +2,7 @@
 
 **Spring Boot 3**, **Spring Cloud**, **Kafka**, **MongoDB**, **Next.js 14**로 구축된 클라우드 네이티브 마이크로서비스 기반 핀테크 플랫폼입니다. 높은 확장성과 성능을 위해 **MSA (Microservices Architecture)**, **EDA (Event-Driven Architecture)**, **DDD (Domain-Driven Design)** 패턴을 구현했습니다.
 
-> 💡 **빠른 시작**: 한 번의 명령으로 전체 시스템을 배포하려면 [`./deploy-mybank.sh`](#kubernetes-kind---통합-배포-권장)를 실행하세요.
+> 💡 **빠른 시작**: 가장 쉬운 방법은 `task up` 명령어입니다! ([설치 방법 보기](#-빠른-시작-quick-start))
 
 ## 아키텍처 개요
 
@@ -125,24 +125,133 @@ mybank/
 - 개발 워크플로우 및 배포 전략
 - 자주 발생하는 문제 해결 방법
 
+## 🚀 빠른 시작 (Quick Start)
+
+MyBank는 3가지 방법으로 간편하게 설치하고 실행할 수 있습니다:
+
+### 방법 1: Task (✅ 권장)
+
+**가장 쉽고 빠른 방법** - 모든 단계를 자동화
+
+```bash
+# Task 설치 (macOS)
+brew install go-task
+
+# Task 설치 (Linux/Windows)
+# https://taskfile.dev/installation/
+
+# 🚀 한 번에 모든 것 설치 및 실행
+task up
+
+# 종료
+task down
+
+# 상태 확인
+task status
+
+# 재배포
+task redeploy
+
+# 모든 명령어 보기
+task --list
+```
+
+**Task의 장점:**
+- ✅ 단계별 자동화 (Preflight → Cleanup → Provision → Deploy → Verify)
+- ✅ 실패 시 자동 롤백
+- ✅ 진행 상황 실시간 표시
+- ✅ 초보자 친화적
+
+### 방법 2: Tilt (개발자용)
+
+**핫 리로드와 실시간 개발** - 코드 변경 시 자동 재배포
+
+```bash
+# Tilt 설치 (macOS)
+brew install tilt
+
+# Tilt 설치 (Linux/Windows)
+# https://docs.tilt.dev/install.html
+
+# 개발 환경 시작 (웹 UI 제공)
+tilt up
+
+# 웹 UI 접속
+open http://localhost:10350
+
+# 종료
+tilt down
+```
+
+**Tilt의 장점:**
+- ✅ 코드 변경 시 자동 빌드 및 재배포 (핫 리로드)
+- ✅ 아름다운 웹 UI (http://localhost:10350)
+- ✅ 실시간 로그 스트리밍
+- ✅ 특정 서비스만 실행 가능: `tilt up auth-service`
+
+### 방법 3: Make (전통적인 방법)
+
+```bash
+# 사전 요구사항 확인
+make prereq
+
+# 완전한 설치
+make init        # 클러스터 생성 + Istio 설치
+make build       # 이미지 빌드
+make deploy      # 배포
+
+# 종료
+make destroy
+
+# 상태 확인
+make status
+
+# 로그 보기
+make logs SERVICE=auth-service
+```
+
+### 📊 방법 비교
+
+| 특징 | Task | Tilt | Make |
+|------|------|------|------|
+| **설치 난이도** | ⭐ 쉬움 | ⭐⭐ 보통 | ⭐⭐⭐ 어려움 |
+| **자동화 수준** | ⭐⭐⭐ 매우 높음 | ⭐⭐ 높음 | ⭐ 보통 |
+| **핫 리로드** | ❌ | ✅ | ❌ |
+| **웹 UI** | ❌ | ✅ | ❌ |
+| **초보자 친화** | ✅ | ⭐⭐ | ❌ |
+| **프로덕션 배포** | ✅ | ❌ | ✅ |
+| **권장 용도** | 일반 사용 | 로컬 개발 | CI/CD |
+
+> 💡 **추천**: 처음 사용하시는 분은 **`task up`**으로 시작하세요!
+
+---
+
 ## 🚀 시작하기
 
 ### 사전 요구사항
 
+**필수 도구:**
 - **Java 17+** (권장: Java 21)
 - **Docker** 및 **Docker Compose**
 - **Gradle 8.x**
 - **Node.js 20+** (프론트엔드 개발용)
-- **Kind** (Kubernetes 배포용, 선택사항)
-- **kubectl** (Kubernetes CLI, Kind 사용 시)
+- **Kind** (Kubernetes 배포용)
+- **kubectl** (Kubernetes CLI)
 
-### 개발 환경 선택
+**선택 도구 (권장):**
+- **Task** (https://taskfile.dev) - 자동화된 배포
+- **Tilt** (https://tilt.dev) - 로컬 개발 환경
+- **Helm 3+** - Kubernetes 패키지 관리
+- **istioctl** - Service Mesh 관리
 
-MyBank는 3가지 개발 환경을 지원합니다:
+### 개발 환경 특징
 
-1. **Docker Compose** (가장 간단) - 로컬 개발 및 빠른 테스트
-2. **Kubernetes (Kind)** (권장) - 프로덕션 환경과 유사한 테스트
-3. **로컬 실행** - 개별 서비스 개발 및 디버깅
+| 환경 | 용도 | 장점 |
+|------|------|------|
+| **Task/Tilt** | 일상 개발 | 자동화, 핫 리로드, 빠른 피드백 |
+| **Docker Compose** | 빠른 테스트 | 간단한 설정, 로컬 개발 |
+| **Kubernetes (Kind)** | 통합 테스트 | 프로덕션 환경과 동일 |
+| **로컬 실행** | 디버깅 | IDE 통합, 세밀한 제어 |
 
 > ⚠️ **중요**: 코드 변경 후에는 **반드시 Kind 클러스터에 배포**하여 Kubernetes 환경에서 정상 작동을 확인하세요.
 
@@ -691,7 +800,79 @@ curl http://localhost:8081/actuator
 
 ## 🔧 개발 워크플로우
 
-### 표준 개발 워크플로우
+### 워크플로우 1: Task 사용 (✅ 권장)
+
+**가장 빠르고 간단한 개발 워크플로우**
+
+```bash
+# 1. 코드 수정
+vim auth-service/src/main/java/...
+
+# 2. 자동 빌드 및 재배포
+task redeploy
+
+# 3. 로그 확인
+task logs -- auth-service
+
+# 4. 상태 확인
+task status
+```
+
+**주요 Task 명령어:**
+
+| 명령어 | 설명 |
+|--------|------|
+| `task up` | 전체 시스템 시작 (Preflight → Provision → Deploy → Verify) |
+| `task down` | 전체 시스템 종료 |
+| `task redeploy` | 빌드 및 재배포 (개발 중 가장 많이 사용) |
+| `task provision:build` | 이미지만 빌드 |
+| `task deploy:services` | 서비스만 재배포 |
+| `task verify:pods` | Pod 상태 확인 |
+| `task logs -- POD_NAME` | 특정 Pod 로그 확인 |
+| `task --list` | 모든 명령어 보기 |
+
+### 워크플로우 2: Tilt 사용 (로컬 개발용)
+
+**코드 변경 시 자동 핫 리로드**
+
+```bash
+# 1. Tilt 시작
+tilt up
+
+# 2. 웹 UI 열기
+open http://localhost:10350
+
+# 3. 코드 수정 - 자동으로 빌드 & 재배포됨!
+vim auth-service/src/main/java/...
+
+# 4. 웹 UI에서 실시간 로그 확인
+
+# 5. 종료
+tilt down
+```
+
+**Tilt 웹 UI 기능:**
+- 📊 모든 서비스 상태 실시간 표시
+- 📝 실시간 로그 스트리밍 (색상 하이라이팅)
+- 🔄 자동 빌드 및 재배포
+- 🎯 개별 서비스 재시작 버튼
+- ⚡ 빌드 시간 및 성능 메트릭
+
+**특정 서비스만 실행:**
+```bash
+# auth-service만 실행
+tilt up auth-service
+
+# 여러 서비스 실행
+tilt up auth-service payment-service
+
+# 인프라 제외하고 실행
+tilt up -- --skip-infrastructure=true
+```
+
+### 워크플로우 3: 수동 배포 (상세 제어용)
+
+**단계별 수동 제어가 필요할 때**
 
 1. **로컬 개발** (선택사항, 빠른 테스트용)
    ```bash
@@ -716,6 +897,14 @@ curl http://localhost:8081/actuator
    kubectl get pods -n mybank
    kubectl logs -f deployment/auth-service -n mybank
    ```
+
+### 📊 워크플로우 비교
+
+| 방법 | 속도 | 자동화 | 권장 시나리오 |
+|------|------|--------|--------------|
+| **Task** | ⭐⭐⭐ | ⭐⭐⭐ | 일반 개발, 테스트, 배포 |
+| **Tilt** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | 활발한 로컬 개발 (핫 리로드 필요) |
+| **수동** | ⭐ | ⭐ | 디버깅, 상세 제어 필요 시 |
 
 > ⚠️ **중요**: 개발 작업 완료 후 반드시 Kind 클러스터에 배포하여 Kubernetes 환경에서 정상 작동을 확인하세요.
 
