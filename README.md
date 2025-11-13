@@ -25,12 +25,12 @@
              │
     ┌────────┴────────┬──────────┬──────────┬──────────┐
     │                 │          │          │          │
-┌───▼────┐  ┌────▼─────┐  ┌──▼───┐  ┌──▼───┐  ┌──▼───┐
-│  Auth  │  │   PFM    │  │Payment│  │Invest│  │ User │
-│Service │  │ Service  │  │Service│  │Service│  │Service│
-│        │  │          │  │       │  │      │  │      │
-│:8081   │  │  :8082   │  │ :8083 │  │:8084 │  │:8085 │
-└────────┘  └────┬─────┘  └───┬───┘  └──┬───┘  └──────┘
+┌───▼────┐  ┌────▼─────┐  ┌──▼───┐  ┌──▼───┐  ┌──▼───┐  ┌──▼──────┐
+│  Auth  │  │  Asset   │  │Payment│  │Invest│  │ User │  │Analytics│
+│Service │  │ Service  │  │Service│  │Service│  │Service│  │Service │
+│        │  │          │  │       │  │      │  │      │  │         │
+│:8081   │  │  :8082   │  │ :8083 │  │:8084 │  │:8085 │  │  :8086  │
+└────────┘  └────┬─────┘  └───┬───┘  └──┬───┘  └──────┘  └─────────┘
                  │            │         │
                  └────────┬───┴─────────┘
                           │
@@ -42,9 +42,9 @@
 
 ## 핵심 기능
 
-### 1. 개인 자산 관리 (PFM)
-- **통합 자산 조회**: 은행, 카드, 증권, 보험 계좌 통합
-- **AI 기반 지출 분석**: 자동 거래 분류 및 이상 탐지
+### 1. 개인 자산 관리 (Asset Management)
+- **통합 자산 조회**: 은행, 카드, 증권, 보험 계좌 통합 (`asset-service`)
+- **AI 기반 지출 분석**: 자동 거래 분류 및 이상 탐지 (`analytics-service`)
 - **Redis 캐싱**: Cache-Aside 패턴을 통한 실시간 잔액 조회
 
 ### 2. 투자 서비스
@@ -94,14 +94,14 @@ mybank/
 │   ├── stores/               # 상태 관리 (Zustand)
 │   └── types/                # TypeScript 타입
 ├── api-gateway/              # API Gateway (Port 8080)
-├── config-server/            # Config Server (Port 8888)
 ├── service-discovery/        # Eureka Server (Port 8761)
 ├── auth-service/             # 인증 서비스 (Port 8081)
 ├── user-service/             # 사용자 프로필 서비스 (Port 8085)
-├── pfm-core-service/         # 자산 관리 서비스 (Port 8082)
+├── asset-service/            # 자산 관리 서비스 (Port 8082)
+├── analytics-service/        # 분석 서비스 (Port 8086)
 ├── payment-service/          # 송금 서비스 (Port 8083)
 ├── investment-service/       # 투자 서비스 (Port 8084)
-├── common-lib/               # 공통 라이브러리, DTOs, Events
+├── common/                   # 공통 라이브러리, DTOs, Events
 ├── k8s/                      # Kubernetes 매니페스트
 │   ├── services/            # Service deployments
 │   ├── config/              # ConfigMaps
@@ -194,7 +194,9 @@ docker-compose logs -f kafka
 
 # 4. 비즈니스 서비스들 (병렬 시작 가능)
 ./gradlew :auth-service:bootRun
-./gradlew :pfm-core-service:bootRun
+./gradlew :user-service:bootRun
+./gradlew :asset-service:bootRun
+./gradlew :analytics-service:bootRun
 ./gradlew :payment-service:bootRun
 ./gradlew :investment-service:bootRun
 ```
@@ -209,11 +211,12 @@ open http://localhost:8761
 curl http://localhost:8080/actuator/health
 
 # 각 서비스 상태 확인
-curl http://localhost:8081/actuator/health
-curl http://localhost:8082/actuator/health
-curl http://localhost:8083/actuator/health
-curl http://localhost:8084/actuator/health
-curl http://localhost:8085/actuator/health
+curl http://localhost:8081/actuator/health  # auth-service
+curl http://localhost:8082/actuator/health  # asset-service
+curl http://localhost:8083/actuator/health  # payment-service
+curl http://localhost:8084/actuator/health  # investment-service
+curl http://localhost:8085/actuator/health  # user-service
+curl http://localhost:8086/actuator/health  # analytics-service
 ```
 
 ## API 사용 예제
@@ -245,7 +248,7 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
 ### 3. 자산 조회 (JWT 포함)
 
 ```bash
-curl http://localhost:8080/api/v1/pfm/assets \
+curl http://localhost:8080/api/v1/asset/summary \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
@@ -524,13 +527,21 @@ kubectl logs -f deployment/investment-service -n mybank | grep "round-up"
 | POST | `/api/v1/auth/logout` | 로그아웃 (토큰 블랙리스트 추가) | ✅ |
 | POST | `/api/v1/auth/refresh` | 토큰 갱신 | ✅ |
 
-### PFM 엔드포인트 (`pfm-core-service`)
+### 자산 엔드포인트 (`asset-service`)
 
 | Method | Endpoint | 설명 | 인증 필요 |
 |--------|----------|------|----------|
-| GET | `/api/v1/pfm/assets` | 자산 요약 조회 (Redis 캐싱) | ✅ |
-| GET | `/api/v1/pfm/spending/analysis?daysBack=30` | 지출 분석 조회 | ✅ |
-| POST | `/api/v1/pfm/sync` | 자산 동기화 (캐시 갱신) | ✅ |
+| GET | `/api/v1/asset/summary` | 자산 요약 조회 (Redis 캐싱) | ✅ |
+| GET | `/api/v1/asset/accounts` | 계좌 목록 조회 | ✅ |
+| POST | `/api/v1/asset/sync` | 자산 동기화 (캐시 갱신) | ✅ |
+
+### 분석 엔드포인트 (`analytics-service`)
+
+| Method | Endpoint | 설명 | 인증 필요 |
+|--------|----------|------|----------|
+| GET | `/api/v1/analytics/spending?daysBack=30` | 지출 분석 조회 | ✅ |
+| GET | `/api/v1/analytics/category` | 카테고리별 지출 분석 | ✅ |
+| GET | `/api/v1/analytics/trend` | 지출 트렌드 분석 | ✅ |
 
 ### 송금 엔드포인트 (`payment-service`)
 

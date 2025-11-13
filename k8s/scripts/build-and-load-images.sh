@@ -19,7 +19,8 @@ SERVICES=(
     "api-gateway"
     "auth-service"
     "user-service"
-    "pfm-core-service"
+    "asset-service"
+    "analytics-service"
     "payment-service"
     "investment-service"
 )

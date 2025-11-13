@@ -20,7 +20,9 @@ replicas:
     count: 1
   - name: user-service
     count: 1
-  - name: pfm-core-service
+  - name: asset-service
+    count: 1
+  - name: analytics-service
     count: 1
   - name: payment-service
     count: 1
@@ -46,7 +48,9 @@ images:
     newTag: dev
   - name: mybank/user-service
     newTag: dev
-  - name: mybank/pfm-core-service
+  - name: mybank/asset-service
+    newTag: dev
+  - name: mybank/analytics-service
     newTag: dev
   - name: mybank/payment-service
     newTag: dev

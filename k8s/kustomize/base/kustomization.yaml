@@ -41,7 +41,9 @@ images:
     newTag: latest
   - name: mybank/user-service
     newTag: latest
-  - name: mybank/pfm-core-service
+  - name: mybank/asset-service
+    newTag: latest
+  - name: mybank/analytics-service
     newTag: latest
   - name: mybank/payment-service
     newTag: latest

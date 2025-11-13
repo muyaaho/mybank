@@ -18,12 +18,13 @@ MyBank is a cloud-native fintech platform implementing **Microservices Architect
 - **Business Services**:
   - `auth-service` (port 8081): OAuth 2.0, JWT, authentication (PostgreSQL)
   - `user-service` (port 8085): User profile management (PostgreSQL)
-  - `pfm-core-service` (port 8082): Asset aggregation, spending analysis (MongoDB, Redis)
+  - `asset-service` (port 8082): Asset aggregation, account management (MongoDB, Redis)
+  - `analytics-service` (port 8086): Spending analysis, insights, trends (MongoDB)
   - `payment-service` (port 8083): Transfers, payment history (MongoDB)
   - `investment-service` (port 8084): Round-up investing, portfolio (MongoDB)
 
 - **Shared Library**:
-  - `common-lib`: DTOs, events, Kafka configs, utilities
+  - `common`: DTOs, events, Kafka configs, utilities
 
 ### Event-Driven Communication
 
@@ -90,7 +91,8 @@ Example: When a payment of 3,450 KRW completes, `PaymentCompletedEvent` triggers
 ./gradlew test
 
 # Run tests for specific service
-./gradlew :pfm-core-service:test
+./gradlew :asset-service:test
+./gradlew :analytics-service:test
 
 # Run single test class
 ./gradlew :auth-service:test --tests AuthServiceTest
@@ -118,7 +120,9 @@ docker-compose up -d
 
 # Business services (can start in parallel)
 ./gradlew :auth-service:bootRun
-./gradlew :pfm-core-service:bootRun
+./gradlew :user-service:bootRun
+./gradlew :asset-service:bootRun
+./gradlew :analytics-service:bootRun
 ./gradlew :payment-service:bootRun
 ./gradlew :investment-service:bootRun
 
@@ -234,7 +238,9 @@ kubectl logs -f deployment/frontend -n mybank
 docker-compose build && \
 kind load docker-image mybank/api-gateway:latest --name mybank-cluster && \
 kind load docker-image mybank/auth-service:latest --name mybank-cluster && \
-kind load docker-image mybank/pfm-core-service:latest --name mybank-cluster && \
+kind load docker-image mybank/user-service:latest --name mybank-cluster && \
+kind load docker-image mybank/asset-service:latest --name mybank-cluster && \
+kind load docker-image mybank/analytics-service:latest --name mybank-cluster && \
 kind load docker-image mybank/payment-service:latest --name mybank-cluster && \
 kind load docker-image mybank/investment-service:latest --name mybank-cluster && \
 kind load docker-image mybank/frontend:latest --name mybank-cluster && \
@@ -404,7 +410,7 @@ public void consume(@Payload PaymentCompletedEvent event, Acknowledgment ack) {
 
 ### 4. Redis Caching Pattern
 
-`pfm-core-service` uses Cache-Aside pattern:
+`asset-service` uses Cache-Aside pattern:
 ```java
 @Cacheable(value = "assets", key = "#userId")
 public AssetSummary getAssets(String userId)
@@ -555,9 +561,14 @@ Located in `app/__tests__/`:
 - **users**: User profile data (separate from auth credentials)
 
 ### MongoDB Collections
-- **pfm-core-service**:
+- **asset-service**:
   - `assets`: User assets from banks, cards, securities
+  - `accounts`: Account information and balances
+
+- **analytics-service**:
   - `transactions`: Transaction history with categories
+  - `spending_patterns`: Analyzed spending patterns and insights
+  - `trends`: Historical trend data
 
 - **payment-service**:
   - `payments`: Payment/transfer records with status tracking

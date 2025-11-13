@@ -40,7 +40,10 @@ spec:
           userService:
             enabled: true
             replicas: 2
-          pfmCoreService:
+          assetService:
+            enabled: true
+            replicas: 2
+          analyticsService:
             enabled: true
             replicas: 2
           paymentService:

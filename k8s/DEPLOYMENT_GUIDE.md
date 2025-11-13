@@ -158,7 +158,8 @@ helm install mybank-services ./helm/mybank \
 helm install mybank ./helm/mybank \
   --namespace mybank \
   --set services.authService.enabled=true \
-  --set services.pfmCoreService.enabled=false \
+  --set services.assetService.enabled=false \
+  --set services.analyticsService.enabled=false \
   --set services.paymentService.enabled=false
 ```
 
@@ -381,7 +382,7 @@ certs/
 - `*.mybank.com`
 - `api.mybank.com`
 - `app.mybank.com`
-- `auth.mybank.com`, `user.mybank.com`, `pfm.mybank.com`
+- `auth.mybank.com`, `user.mybank.com`, `asset.mybank.com`, `analytics.mybank.com`
 - `payment.mybank.com`, `investment.mybank.com`
 - `eureka.mybank.com`, `grafana.mybank.com`
 - `kafka-ui.mybank.com`, `prometheus.mybank.com`, `argocd.mybank.com`

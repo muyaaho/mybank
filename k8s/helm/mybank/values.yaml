@@ -158,16 +158,27 @@ services:
       name: mybank_user
       port: 5433
 
-  # PFM Core Service
-  pfmCoreService:
+  # Asset Service
+  assetService:
     enabled: true
-    name: pfm-core-service
+    name: asset-service
     port: 8082
     image:
-      repository: mybank/pfm-core-service
+      repository: mybank/asset-service
       tag: latest
     database:
-      name: mybank_pfm
+      name: mybank_asset
+
+  # Analytics Service
+  analyticsService:
+    enabled: true
+    name: analytics-service
+    port: 8086
+    image:
+      repository: mybank/analytics-service
+      tag: latest
+    database:
+      name: mybank_analytics
 
   # Payment Service
   paymentService:

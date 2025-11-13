@@ -126,7 +126,9 @@ releases:
             replicas: '{{ .Values.replicas | default 2 }}'
           userService:
             replicas: '{{ .Values.replicas | default 2 }}'
-          pfmCoreService:
+          assetService:
+            replicas: '{{ .Values.replicas | default 2 }}'
+          analyticsService:
             replicas: '{{ .Values.replicas | default 2 }}'
           paymentService:
             replicas: '{{ .Values.replicas | default 2 }}'

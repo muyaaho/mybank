@@ -57,7 +57,7 @@ postgres:
       size: 1Gi
       accessMode: ReadWriteOnce
 
-# MongoDB for pfm-core, payment, investment services
+# MongoDB for asset, analytics, payment, investment services
 mongodb:
   enabled: true
   name: mongodb
